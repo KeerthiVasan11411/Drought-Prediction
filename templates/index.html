@@ -3,97 +3,733 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kancheepuram Drought & Irrigation Prediction System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>Kancheepuram Drought Intelligence</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; color: #0f172a; padding: 40px 0; }
-        .card-custom { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 20px; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.05); }
-        .btn-custom { background: #0f172a; color: #ffffff; border-radius: 12px; padding: 12px 24px; font-weight: 700; border: none; }
-        .btn-custom:hover { background: #1e293b; color: #ffffff; }
-        .result-box { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 16px; padding: 24px; }
-        .info-box { background: #f8fafc; border: 1px dashed #cbd5f5; border-radius: 14px; padding: 14px; }
-        .table-sm td { padding: 8px 12px; }
+        :root {
+            --bg: #101b18;
+            --bg-2: #182b25;
+            --line: rgba(241, 232, 208, 0.14);
+            --text: #f5f0df;
+            --muted: #a8b8a9;
+            --mint: #a6e6b5;
+            --lime: #d8ed7a;
+            --amber: #f4b860;
+            --red: #f17f6b;
+            --shadow: 0 28px 80px rgba(4, 12, 9, 0.48);
+        }
+
+        * { box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'Manrope', sans-serif;
+            background:
+                radial-gradient(circle at 18% 4%, rgba(216, 237, 122, 0.12), transparent 24%),
+                radial-gradient(circle at 90% 70%, rgba(241, 127, 107, 0.12), transparent 28%),
+                linear-gradient(135deg, var(--bg) 0%, var(--bg-2) 55%, #0d1714 100%);
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 42px 42px;
+            mask-image: radial-gradient(circle at center, black 35%, transparent 100%);
+            pointer-events: none;
+        }
+
+        .floating-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(20px);
+            opacity: 0.65;
+            animation: float 18s ease-in-out infinite alternate;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .orb-1 { width: 420px; height: 420px; background: rgba(103, 232, 249, 0.18); top: 6%; left: -6%; }
+        .orb-2 { width: 500px; height: 500px; background: rgba(167, 139, 250, 0.14); right: -8%; top: 18%; animation-delay: 3s; }
+        .orb-3 { width: 350px; height: 350px; background: rgba(74, 222, 128, 0.12); bottom: 8%; left: 25%; animation-delay: 6s; }
+
+        @keyframes float {
+            0% { transform: translate3d(0, 0, 0) scale(1); }
+            100% { transform: translate3d(22px, -22px, 0) scale(1.08); }
+        }
+
+        @keyframes page-in {
+            from { opacity: 0; transform: translateY(18px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes reveal {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shimmer {
+            from { transform: translateX(-120%) skewX(-20deg); }
+            to { transform: translateX(280%) skewX(-20deg); }
+        }
+
+        .page-shell {
+            position: relative;
+            z-index: 1;
+            width: min(1200px, calc(100% - 32px));
+            margin: 32px auto 48px;
+            padding: 18px 0 10px;
+            animation: page-in 0.8s ease both;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 10px 26px;
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--text);
+        }
+
+        .brand-mark {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--lime), var(--mint));
+            display: grid;
+            place-items: center;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 12px 35px rgba(216,237,122,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .brand-mark::before {
+            content: "";
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.9);
+            box-shadow: 0 0 12px rgba(255,255,255,0.7);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: rgba(103, 232, 249, 0.08);
+            border: 1px solid rgba(103, 232, 249, 0.24);
+            color: var(--muted);
+            font-size: 0.76rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .status-badge::before {
+            content: "";
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--lime);
+            box-shadow: 0 0 14px rgba(74,222,128,0.9);
+            animation: pulse 1.6s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.7; }
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 0.95fr 1.05fr;
+            gap: 30px;
+            align-items: center;
+            min-height: 640px;
+        }
+
+        .hero-copy {
+            padding: 28px 8px 20px;
+            animation: reveal 0.75s 0.12s ease both;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            padding: 10px 16px;
+            margin-bottom: 22px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.09);
+            color: var(--lime);
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            font-weight: 800;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            font-size: clamp(2.8rem, 4vw, 6rem);
+            line-height: 0.96;
+            font-weight: 800;
+            margin: 0 0 18px;
+            letter-spacing: -0.06em;
+            max-width: 650px;
+        }
+
+        h1 .accent {
+            background: linear-gradient(135deg, var(--lime), var(--mint) 55%, var(--amber) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 30px rgba(216,237,122,0.2);
+        }
+
+        .lead {
+            max-width: 620px;
+            color: var(--muted);
+            font-size: 1.08rem;
+            line-height: 1.8;
+            margin-bottom: 26px;
+        }
+
+        .field-note {
+            color: var(--muted);
+            font-family: 'DM Mono', monospace;
+            font-size: 0.72rem;
+            line-height: 1.8;
+            letter-spacing: 0.02em;
+            opacity: 0.9;
+        }
+
+        .field-note span {
+            color: var(--lime);
+            padding: 0 7px;
+        }
+
+        .control-card {
+            position: relative;
+            background: linear-gradient(180deg, rgba(15, 33, 46, 0.9), rgba(10, 22, 33, 0.85));
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            border-radius: 28px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(18px);
+            overflow: hidden;
+            animation: reveal 0.75s 0.24s ease both;
+        }
+
+        .control-card::before {
+            content: "";
+            position: absolute;
+            inset: -35% 25% auto -15%;
+            height: 220px;
+            background: radial-gradient(circle, rgba(216,237,122,0.2), transparent 58%);
+            pointer-events: none;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding-bottom: 18px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-title {
+            font-size: 0.78rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            font-weight: 800;
+        }
+
+        .mini-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(74,222,128,0.08);
+            border: 1px solid rgba(74,222,128,0.28);
+            color: #d9ffe7;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .mini-pill::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--lime);
+            box-shadow: 0 0 12px rgba(74,222,128,0.9);
+        }
+
+        .input-stack {
+            position: relative;
+            z-index: 1;
+        }
+
+        .field-label {
+            display: block;
+            margin: 0 0 12px;
+            color: var(--muted);
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+        }
+
+        .date-input {
+            width: 100%;
+            min-height: 58px;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            color: var(--text);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+        }
+
+        .date-input:focus {
+            border-color: rgba(216, 237, 122, 0.7);
+            box-shadow: 0 0 0 5px rgba(216, 237, 122, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .date-input::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+
+        .tag-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 18px;
+            margin-bottom: 26px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .tag-heading {
+            margin: 26px 0 0;
+            color: var(--cream);
+            font-family: 'DM Mono', monospace;
+            font-size: 0.72rem;
+            letter-spacing: 0.02em;
+        }
+
+        .tag {
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            font-size: 0.75rem;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        .tag.success { color: #dfffe8; background: rgba(74,222,128,0.08); border-color: rgba(74,222,128,0.2); }
+        .tag.info { color: #dff7df; background: rgba(166,230,181,0.08); border-color: rgba(166,230,181,0.2); }
+        .tag.warning { color: #ffefbd; background: rgba(251,191,36,0.08); border-color: rgba(251,191,36,0.22); }
+        .tag.danger { color: #ffd1d1; background: rgba(248,113,113,0.08); border-color: rgba(248,113,113,0.22); }
+
+        .submit-btn {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            min-height: 58px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            padding: 0 22px;
+            border: none;
+            border-radius: 14px;
+            font-family: inherit;
+            font-size: 0.88rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #17251b;
+            background: linear-gradient(135deg, var(--lime), var(--mint) 55%, var(--amber));
+            box-shadow: 0 18px 36px rgba(216, 237, 122, 0.2);
+            cursor: pointer;
+            overflow: hidden;
+            isolation: isolate;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            filter: saturate(1.08) brightness(1.04);
+            box-shadow: 0 24px 44px rgba(216, 237, 122, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0) scale(0.985);
+        }
+
+        .submit-btn:focus-visible {
+            outline: 3px solid var(--cream);
+            outline-offset: 4px;
+        }
+
+        .submit-btn::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            width: 35%;
+            background: rgba(255,255,255,0.3);
+            transform: translateX(-120%) skewX(-20deg);
+            animation: shimmer 3.8s 1.4s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .submit-btn span {
+            position: relative;
+            z-index: 1;
+            font-family: 'DM Mono', monospace;
+            font-size: 1.1rem;
+            line-height: 1;
+        }
+
+        .result-wrap {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 24px;
+            margin-top: 36px;
+            scroll-margin-top: 28px;
+        }
+
+        .result-card,
+        .weather-card,
+        .alert-box {
+            position: relative;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 28px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(18px);
+            overflow: hidden;
+            animation: reveal 0.65s ease both;
+        }
+
+        .result-card {
+            padding: 26px 24px;
+        }
+
+        .weather-card {
+            padding: 22px 20px;
+        }
+
+        .result-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            align-items: center;
+            margin-bottom: 22px;
+        }
+
+        .result-label {
+            font-size: 0.76rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .result-date {
+            color: var(--lime);
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .class-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 180px;
+            padding: 12px 18px;
+            border-radius: 16px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            background: rgba(248,113,113,0.14);
+            border: 1px solid rgba(248,113,113,0.28);
+            color: #ffd5d5;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+
+        .irrigation-wrap {
+            margin-top: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+            gap: 12px;
+            padding: 16px 0 18px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .irrigation-label {
+            color: var(--muted);
+            font-size: 0.7rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .irrigation-value {
+            font-size: clamp(2.4rem, 4vw, 4rem);
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -0.06em;
+            background: linear-gradient(135deg, var(--mint), var(--lime) 55%, var(--amber));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .irrigation-unit {
+            color: var(--muted);
+            font-weight: 700;
+            font-size: 0.9rem;
+            transform: translateY(-12px);
+        }
+
+        .alert-box {
+            margin-top: 20px;
+            padding: 16px 18px;
+            background: rgba(248,113,113,0.08);
+            border-color: rgba(248,113,113,0.24);
+            color: #ffd6d6;
+            font-weight: 700;
+        }
+
+        .weather-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(120px, 1fr));
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .weather-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 14px 12px;
+        }
+
+        .weather-item small {
+            display: block;
+            color: var(--muted);
+            margin-bottom: 8px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .weather-item strong {
+            font-size: 1.15rem;
+            color: var(--text);
+        }
+
+        .error-box {
+            margin-top: 24px;
+            padding: 16px 18px;
+            border-radius: 16px;
+            border: 1px solid rgba(248,113,113,0.3);
+            background: rgba(248,113,113,0.09);
+            color: #ffd6d6;
+            font-weight: 700;
+        }
+
+        @media (max-width: 920px) {
+            .hero-grid, .result-wrap {
+                grid-template-columns: 1fr;
+            }
+
+            .topbar {
+                flex-direction: column;
+                gap: 18px;
+                align-items: flex-start;
+            }
+        }
+
+        @media (max-width: 580px) {
+            .page-shell { width: min(100% - 18px, 1200px); }
+            .weather-grid { grid-template-columns: 1fr 1fr; }
+            .brand { letter-spacing: 0.04em; }
+            h1 { font-size: 2.7rem; }
+            .result-head { flex-direction: column; align-items: flex-start; }
+            .irrigation-wrap { flex-wrap: wrap; }
+            .field-note span { padding: 0 3px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                scroll-behavior: auto !important;
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="floating-orb orb-1"></div>
+    <div class="floating-orb orb-2"></div>
+    <div class="floating-orb orb-3"></div>
 
-<div class="container">
-    <div class="text-center mb-5">
-        <h1 class="display-6 fw-bold">Kancheepuram Drought & Irrigation Prediction</h1>
-        <p class="text-secondary fw-semibold">Select a Date to Analyze Kancheepuram Region Conditions</p>
-    </div>
+    <div class="page-shell">
+        <header class="topbar">
+            <div class="brand">
+                <span class="brand-mark" aria-hidden="true"></span>
+                <span>Drought Watch</span>
+            </div>
+            <div class="status-badge">System online</div>
+        </header>
 
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
-            <div class="card card-custom p-4">
-                
-                <!-- Info Box Showing Possible Drought Conditions -->
-                <div class="info-box mb-4">
-                    <span class="d-block fw-bold text-dark small mb-2">Possible Drought Classes in Kancheepuram:</span>
-                    <div class="d-flex flex-wrap gap-1">
-                        <span class="badge bg-success">Normal</span>
-                        <span class="badge bg-info text-dark">Mild Drought</span>
-                        <span class="badge bg-warning text-dark">Moderate Drought</span>
-                        <span class="badge bg-danger">Severe Drought</span>
-                        <span class="badge bg-dark">Extreme Drought</span>
-                    </div>
+        <main class="hero-grid">
+            <section class="hero-copy">
+                <div class="eyebrow">Kancheepuram / climate intelligence</div>
+                <h1>Read the land<br><span class="accent">before it dries.</span></h1>
+                <p class="lead">
+                    Turn historical weather patterns into a clear irrigation signal. Pick a date and get a field-ready drought advisory in seconds.
+                </p>
+
+                <div class="field-note">Historical averages <span aria-hidden="true">/</span> date-specific signal <span aria-hidden="true">/</span> irrigation guidance</div>
+            </section>
+
+            <aside class="control-card" id="forecast-panel">
+                <div class="card-header">
+                    <div class="card-title">Forecast engine / 01</div>
+                    <div class="mini-pill">Live</div>
                 </div>
 
-                <form method="POST">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small">Select Target Date (Year, Month, Day)</label>
-                        <input type="date" class="form-control form-control-lg" name="prediction_date" value="{{ request.form.get('prediction_date', '') }}" required>
+                <form method="POST" class="input-stack">
+                    <label class="field-label" for="prediction_date">Target date</label>
+                    <input id="prediction_date" type="date" class="date-input" name="prediction_date" value="{{ request.form.get('prediction_date', '') }}" required>
+
+                    <div class="tag-heading">Drought conditions possible</div>
+                    <div class="tag-row">
+                        <span class="tag success">Normal</span>
+                        <span class="tag info">Mild drought</span>
+                        <span class="tag warning">Moderate</span>
+                        <span class="tag danger">Severe</span>
                     </div>
-                    <button type="submit" class="btn btn-custom w-100 mt-2">Predict by Date</button>
+
+                    <button type="submit" class="submit-btn">Run field analysis <span aria-hidden="true">&#8594;</span></button>
                 </form>
+            </aside>
+        </main>
 
-                {% if result %}
-                <div class="result-box mt-4">
-                    <h5 class="fw-bold text-dark mb-3">Prediction for Kancheepuram ({{ result.date }})</h5>
-                    <div class="mb-3">
-                        <p class="mb-1"><strong>Drought Class:</strong> <span class="badge bg-danger fs-6">{{ result.drought_class }}</span></p>
-                        <p class="mb-0"><strong>Irrigation Recommendation:</strong> <span class="text-primary fw-bold fs-5">{{ result.irrigation_recommendation }} mm</span></p>
+        {% if result %}
+        <section class="result-wrap" id="prediction-output" tabindex="-1">
+            <div class="result-card">
+                <div class="result-head">
+                    <div>
+                        <div class="result-label">Prediction output / advisory</div>
                     </div>
-
-                    {% if result.drought_class == 'Extreme Drought' or result.drought_class == 'Severe Drought' %}
-                    <div class="alert alert-danger mt-3 mb-3 small fw-bold">
-                        🚨 Emergency Advisory: {{ result.drought_class }} conditions detected for this date! Prioritize drip irrigation and soil mulching.
-                    </div>
-                    {% endif %}
-
-                    <hr class="text-secondary my-3">
-
-                    <h6 class="fw-bold text-secondary text-uppercase small mb-2">Estimated Regional Climate Norms</h6>
-                    <table class="table table-sm table-borderless mb-0 text-secondary small">
-                        <tr>
-                            <td>Rainfall: <strong class="text-dark">{{ weather.rainfall }} mm</strong></td>
-                            <td>Temperature: <strong class="text-dark">{{ weather.temperature }} °C</strong></td>
-                        </tr>
-                        <tr>
-                            <td>Humidity: <strong class="text-dark">{{ weather.humidity }} %</strong></td>
-                            <td>Soil Moisture: <strong class="text-dark">{{ weather.soil_moisture }} %</strong></td>
-                        </tr>
-                        <tr>
-                            <td>Wind Speed: <strong class="text-dark">{{ weather.wind_speed }} m/s</strong></td>
-                            <td>ET0: <strong class="text-dark">{{ weather.et0 }} mm</strong></td>
-                        </tr>
-                        <tr>
-                            <td colspan="2">Drought Index: <strong class="text-dark">{{ weather.drought_index }}</strong></td>
-                        </tr>
-                    </table>
+                    <div class="result-date">{{ result.date }}</div>
                 </div>
-                {% endif %}
 
-                {% if error_msg %}
-                <div class="alert alert-danger mt-4 mb-0 fw-bold">
-                    ⚠️ {{ error_msg }}
+                <div class="class-badge">{{ result.drought_class }}</div>
+
+                <div class="irrigation-wrap">
+                    <div>
+                        <span class="irrigation-label">Irrigation recommendation</span>
+                        <span class="irrigation-value">{{ result.irrigation_recommendation }}</span>
+                    </div>
+                    <span class="irrigation-unit">mm</span>
+                </div>
+
+                {% if result.drought_class == 'Extreme Drought' or result.drought_class == 'Severe Drought' %}
+                <div class="alert-box">
+                    Emergency advisory: {{ result.drought_class }} conditions detected. Prioritize drip irrigation, soil mulching, and reduced evaporation exposure.
                 </div>
                 {% endif %}
             </div>
-        </div>
-    </div>
-</div>
 
+            <div class="weather-card">
+                <div class="result-label">Regional climate norms</div>
+                <div class="weather-grid">
+                    <div class="weather-item">
+                        <small>Rainfall</small>
+                        <strong>{{ weather.rainfall }} mm</strong>
+                    </div>
+                    <div class="weather-item">
+                        <small>Temp</small>
+                        <strong>{{ weather.temperature }} °C</strong>
+                    </div>
+                    <div class="weather-item">
+                        <small>Humidity</small>
+                        <strong>{{ weather.humidity }} %</strong>
+                    </div>
+                    <div class="weather-item">
+                        <small>Soil</small>
+                        <strong>{{ weather.soil_moisture }} %</strong>
+                    </div>
+                    <div class="weather-item">
+                        <small>Wind</small>
+                        <strong>{{ weather.wind_speed }} m/s</strong>
+                    </div>
+                    <div class="weather-item">
+                        <small>ET0</small>
+                        <strong>{{ weather.et0 }} mm</strong>
+                    </div>
+                    <div class="weather-item" style="grid-column: 1 / -1;">
+                        <small>Drought index</small>
+                        <strong>{{ weather.drought_index }}</strong>
+                    </div>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
+        {% if error_msg %}
+        <div class="error-box">
+            ⚠️ {{ error_msg }}
+        </div>
+        {% endif %}
+    </div>
+
+    {% if result %}
+    <script>
+        window.addEventListener('load', function () {
+            var output = document.getElementById('prediction-output');
+            if (output) {
+                output.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                output.focus({ preventScroll: true });
+            }
+        });
+    </script>
+    {% endif %}
 </body>
 </html>
